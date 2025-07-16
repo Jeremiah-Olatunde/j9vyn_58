@@ -19,12 +19,12 @@ import R, { type Reader } from "./Reader.js";
 
   type Name = string;
 
-  function forth(name: Name): string {
+  function fourth(name: Name): string {
     return " I wish my name was " + name;
   }
 
   function third(name: Name): string {
-    return forth(name) + "!";
+    return fourth(name) + "!";
   }
 
   function second(name: Name): string {
