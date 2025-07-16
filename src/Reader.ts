@@ -37,7 +37,15 @@ const Bind: Bind = {
   bind: (afb) => (fa) => (arg) => afb(fa(arg))(arg),
 };
 
+type Ask = <Context>() => Reader<Context, Context>;
+const ask: Ask = () => (context) => context;
+
+type Asks = <Context, A>(read: (c: Context) => A) => Reader<Context, A>;
+const asks: Asks = (selector) => selector;
+
 export default {
+  ask,
+  asks,
   ...Functor,
   ...Apply,
   ...Applicative,
