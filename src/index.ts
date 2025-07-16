@@ -65,17 +65,15 @@ import R, { type Reader } from "./Reader.js";
   function first(): Reader<Context, string> {
     return F.pipe(
       R.ask<Context>(),
-      R.bind((context) => {
+      R.bind(() => {
         return F.pipe(
           second(),
-          R.bind((snd) => {
-            return F.pipe(
+          R.bind((snd) =>
+            F.pipe(
               third(),
-              R.bind((thd) => {
-                return R.pure(first_(snd)(thd));
-              }),
-            );
-          }),
+              R.bind((thd) => R.pure(first_(snd)(thd))),
+            ),
+          ),
         );
       }),
     );
