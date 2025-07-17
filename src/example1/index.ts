@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { function as F, reader as Rdr } from "fp-ts";
 
-import R, { type Reader } from "./Reader.js";
+import R, { type Reader } from "../lib/Reader.js";
 
 {
   /**
