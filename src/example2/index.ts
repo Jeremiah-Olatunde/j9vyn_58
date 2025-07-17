@@ -16,7 +16,7 @@ function topNav(): Html {
 }
 
 function content(email: Email): Html {
-  return html.div(html.h1("Custom content for email"), left(), right(email));
+  return html.div(html.h1(`Custom content for ${email}`), left(), right(email));
 }
 
 function left(): Html {
