@@ -78,6 +78,10 @@ import R, { type Reader } from "./Reader.js";
       }),
     );
   }
+
+  const actual = first()("Jeremiah");
+  const expected = "Welcome Jeremiah! I wish my name was Jeremiah!";
+  assert.strictEqual(actual, expected);
 }
 
 {
@@ -88,14 +92,37 @@ import R, { type Reader } from "./Reader.js";
   const welcome = (name: string) => `Welcome ${name}!`;
   const join = (s: string) => (t: string) => `${s} ${t}`;
 
-  const fourth: Reader<Name, string> = F.pipe(R.ask<Name>(), R.map(wish));
-  const third: Reader<Name, string> = F.pipe(fourth, R.map(yell));
-  const second: Reader<Name, string> = F.pipe(R.ask<Name>(), R.map(welcome));
-  const first: Reader<Name, string> = bind(second, (snd) =>
-    bind(third, (thd) => R.pure(join(snd)(thd))),
+  // hear we map over the return type of the reader
+  // we use ask to return to creater a reader that passes the input
+  // to the output (the identity function) in order to allow us to
+  // use R.map over the output
+  const fth: Reader<Name, string> = map(R.ask<Name>(), wish);
+  const snd: Reader<Name, string> = map(R.ask<Name>(), welcome);
+
+  // thd wants to perform an operation on the result of fth
+  // we used R.ask to move the input (Name) to the output with fth
+  // here what we do is map over the output of fth
+  // so fth maps over the output of the reader returned by R.ask<Name>
+  // and thd maps over the output of the reader returned by fth
+  const thd: Reader<Name, string> = map(fth, yell);
+
+  // with first we need access to the return types of two readers
+  // at the same time
+  // if we only needed the return value of one we would map over it
+  // like we did with fth, snd, and third but here we need the
+  // return value of snd and thd
+  // we accomplish this using bind
+  const fst: Reader<Name, string> = bind(snd, (snd) =>
+    bind(thd, (thd) => R.pure(join(snd)(thd))),
   );
 
-  console.log(first("Jeremiah"));
+  const actual = fst("Jeremiah");
+  const expected = "Welcome Jeremiah! I wish my name was Jeremiah!";
+  assert.strictEqual(actual, expected);
+}
+
+function map<R, A, B>(fa: Reader<R, A>, transform: (a: A) => B) {
+  return F.pipe(fa, R.map(transform));
 }
 
 function bind<R, A, B>(fa: Reader<R, A>, afb: (a: A) => Reader<R, B>) {
