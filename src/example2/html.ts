@@ -17,7 +17,7 @@ function combine(elements: string[]): string {
   return elements.join("");
 }
 
-export function formatHtml(html: string): string {
+export function render(html: string): string {
   const tagRegex = /(<[^>]+>)/g;
   const tokens = html.split(tagRegex).filter((token) => token.trim() !== "");
 
