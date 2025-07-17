@@ -154,37 +154,3 @@ function bind<R, A, B>(fa: Reader<R, A>, afb: (a: A) => Reader<R, B>) {
   const expected = "Welcome Jeremiah! I wish my name was Jeremiah!";
   assert.strictEqual(actual, expected);
 }
-
-type Html = string;
-type Email = string;
-
-function div(...children: Html[]) {
-  return `<div>${combine(children)}</div>`;
-}
-
-function p(...children: Html[]) {
-  return `<p>${combine(children)}</p>`;
-}
-
-function h1(...children: Html[]) {
-  return `<h1>${combine(children)}</h1>`;
-}
-
-function combine(elements: string[]): string {
-  return elements.join("");
-}
-
-console.log(
-  div(
-    div(
-      h1("the second coming"),
-      p("turning and turning in the widening gyre"),
-      p("the falcon cannot hear the falconer"),
-    ),
-    div(
-      h1("because i could not stop for death"),
-      p("because i could not stop for death"),
-      p("he kindly stopped for me"),
-    ),
-  ),
-);
