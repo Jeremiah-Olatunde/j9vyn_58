@@ -78,6 +78,26 @@ import R, { type Reader } from "./Reader.js";
       }),
     );
   }
+}
 
-  console.log(first()("Jeremiah"));
+{
+  type Name = "Jeremiah" | "Roman";
+
+  const wish = (name: string) => `I wish my name was ${name}`;
+  const yell = (s: string) => `${s}!`;
+  const welcome = (name: string) => `Welcome ${name}!`;
+  const join = (s: string) => (t: string) => `${s} ${t}`;
+
+  const fourth: Reader<Name, string> = F.pipe(R.ask<Name>(), R.map(wish));
+  const third: Reader<Name, string> = F.pipe(fourth, R.map(yell));
+  const second: Reader<Name, string> = F.pipe(R.ask<Name>(), R.map(welcome));
+  const first: Reader<Name, string> = bind(second, (snd) =>
+    bind(third, (thd) => R.pure(join(snd)(thd))),
+  );
+
+  console.log(first("Jeremiah"));
+}
+
+function bind<R, A, B>(fa: Reader<R, A>, afb: (a: A) => Reader<R, B>) {
+  return R.bind(afb)(fa);
 }
