@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { function as F } from "fp-ts";
+import { function as F, reader as Rdr } from "fp-ts";
 
 import R, { type Reader } from "./Reader.js";
 
@@ -127,4 +127,30 @@ function map<R, A, B>(fa: Reader<R, A>, transform: (a: A) => B) {
 
 function bind<R, A, B>(fa: Reader<R, A>, afb: (a: A) => Reader<R, B>) {
   return R.bind(afb)(fa);
+}
+
+{
+  type Name = "Jeremiah" | "Roman";
+
+  const wish = (name: string) => `I wish my name was ${name}`;
+  const yell = (s: string) => `${s}!`;
+  const welcome = (name: string) => `Welcome ${name}!`;
+  const join = (s: string) => (t: string) => `${s} ${t}`;
+
+  const fth: Rdr.Reader<Name, string> = Rdr.map(wish)(Rdr.ask());
+  const snd: Rdr.Reader<Name, string> = Rdr.map(welcome)(Rdr.ask());
+  const thd: Rdr.Reader<Name, string> = Rdr.map(yell)(fth);
+  const fst: Rdr.Reader<Name, string> = F.pipe(
+    snd,
+    Rdr.flatMap((snd) =>
+      F.pipe(
+        thd,
+        Rdr.flatMap((thd) => Rdr.of(join(snd)(thd))),
+      ),
+    ),
+  );
+
+  const actual = fst("Jeremiah");
+  const expected = "Welcome Jeremiah! I wish my name was Jeremiah!";
+  assert.strictEqual(actual, expected);
 }
