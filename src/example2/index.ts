@@ -1,5 +1,8 @@
 import assert from "node:assert";
 
+import { function as F } from "fp-ts";
+import R, { type Reader } from "../lib/Reader.js";
+
 import * as html from "./html.js";
 import { type Html } from "./html.js";
 
@@ -79,4 +82,67 @@ const expected: string = `<div>
   const actual = html.render(view("Jeremiah"));
 
   assert.strictEqual(actual, expected);
+}
+
+{
+  // Extracting the "core functionality" out of the reader
+  // Notice how this itself is just a reader
+
+  const expected =
+    "<div><p>Hey Jeremiah we've got a great deal for you</p></div>";
+
+  const renderWidget = (email: string) => {
+    return html.div(html.p(`Hey ${email} we've got a great deal for you`));
+  };
+
+  {
+    const widget: Reader<Email, string> = F.pipe(
+      R.ask<Email>(),
+      R.map(renderWidget), // we are mapping a reader over a reader
+    );
+
+    const actual = widget("Jeremiah");
+    assert.strictEqual(actual, expected);
+  }
+
+  {
+    const widget: Reader<Email, string> = F.pipe(
+      R.ask<Email>(),
+      R.bind((email) => R.pure(renderWidget(email))),
+    );
+
+    const actual = widget("Jeremiah");
+    assert.strictEqual(actual, expected);
+  }
+
+  {
+    // Tracing the execution flow for a better understanding
+    const widget: Reader<Email, string> = F.pipe(
+      // R.ask<Email>()
+      (email: Email) => {
+        console.log("marker 0");
+        return email;
+      },
+      R.bind(
+        (
+          emailAsk /*i.e the return value from the function prior*/ : string,
+        ) => {
+          console.log("marker 1");
+          return (_emailEnv: /*the reader context/enviroment*/ Email) => {
+            // note how emailAsk and emailEnv are the same
+            // due to the fact that we are flatMapping over R.ask i.e
+            // the identity function
+            console.log("marker 2");
+            return renderWidget(emailAsk);
+          };
+        },
+      ),
+    );
+
+    console.log("before running reader");
+    const actual = widget("Jeremiah");
+    console.log("after running reader");
+
+    assert.strictEqual(actual, expected);
+  }
 }
