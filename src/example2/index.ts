@@ -120,29 +120,86 @@ const expected: string = `<div>
     const widget: Reader<Email, string> = F.pipe(
       // R.ask<Email>()
       (email: Email) => {
-        console.log("marker 0");
+        // console.log("marker 0");
         return email;
       },
       R.bind(
         (
           emailAsk /*i.e the return value from the function prior*/ : string,
         ) => {
-          console.log("marker 1");
+          // console.log("marker 1");
           return (_emailEnv: /*the reader context/enviroment*/ Email) => {
             // note how emailAsk and emailEnv are the same
             // due to the fact that we are flatMapping over R.ask i.e
             // the identity function
-            console.log("marker 2");
+            // console.log("marker 2");
             return renderWidget(emailAsk);
           };
         },
       ),
     );
 
-    console.log("before running reader");
+    // console.log("before running reader");
     const actual = widget("Jeremiah");
-    console.log("after running reader");
+    // console.log("after running reader");
 
     assert.strictEqual(actual, expected);
   }
+}
+
+{
+  const left = html.div(html.p("This is the left side"));
+  const topNav = html.div(html.h1("Our Site"));
+
+  const renderWidget = (s: string) => {
+    return html.div(html.p(`Hey ${s} we've got a great deal for you`));
+  };
+
+  const renderArticle = (s: string) => {
+    return html.div(html.p("this is an article"), s);
+  };
+
+  const renderContent = (s: string) => (t: string) => {
+    return html.div(html.h1(`Custom content for ${t}`), left, s);
+  };
+
+  const renderPage = (s: string) => html.div(topNav, s);
+
+  const widget = F.pipe(R.ask<Email>(), R.map(renderWidget));
+  const article = F.pipe(widget, R.map(renderArticle));
+  const right = F.pipe(article, R.map(html.div));
+  const content = F.pipe(right, R.bind(renderContent)); // being cheeky here
+  const page = F.pipe(content, R.map(renderPage));
+  const view = F.pipe(page, R.map(html.div));
+
+  // here we need two thing, the email from the environment
+  // and the result of the right view function
+  // we can use R.ask<Email>
+  // run bind on that to get access to the email
+  // then run bind on right to get access to its result
+  // perform our computation, in this case interpolating string
+  // then lift the resulting string into our reader context and return that
+  //
+  // notice how to get the email from the "context" we used .ask to get a
+  // reader
+  // but recall that the environment is called on the function returned
+  // by bind, so we could have instead read the email from that
+  // by using pure we just ignore it
+  //
+  // const content = F.pipe(
+  //   R.ask<Email>(),
+  //   R.bind((email) => {
+  //     return F.pipe(
+  //       right,
+  //       R.bind((right_) => {
+  //         return R.pure(
+  //           html.div(html.h1(`Custom content for ${email}`), left, right_),
+  //         );
+  //       }),
+  //     );
+  //   }),
+  // );
+
+  const actual = html.render(view("Jeremiah"));
+  assert.strictEqual(actual, expected);
 }
