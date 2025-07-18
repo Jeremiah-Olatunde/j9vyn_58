@@ -172,6 +172,16 @@ const expected: string = `<div>
   const page = F.pipe(content, R.map(renderPage));
   const view = F.pipe(page, R.map(html.div));
 
+  const inspect = F.pipe(
+    R.ask<Email>(),
+    R.map(renderWidget),
+    R.map(renderArticle),
+    R.map(html.div),
+    R.bind(renderContent),
+    R.map(renderPage),
+    R.map(html.div),
+  );
+
   // here we need two thing, the email from the environment
   // and the result of the right view function
   // we can use R.ask<Email>
@@ -200,6 +210,12 @@ const expected: string = `<div>
   //   }),
   // );
 
-  const actual = html.render(view("Jeremiah"));
-  assert.strictEqual(actual, expected);
+  {
+    const actual = html.render(view("Jeremiah"));
+    assert.strictEqual(actual, expected);
+  }
+  {
+    const actual = html.render(inspect("Jeremiah"));
+    assert.strictEqual(actual, expected);
+  }
 }
